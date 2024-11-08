@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="mid2.css">
+    <title>台中市各區里人口組成結構</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+</head>
+<body>
+    <h1>台中市各區里人口組成結構</h1>
+    <p>請選擇欲查詢區域</p>
+    <select style="width: 150px;" id="country-select">
+        <option hidden>請選擇欲查詢區域</option>
+    </select>
+    <br/>
+    <p>請選擇欲查詢的里</p>
+    <select style="width: 150px;" id="areaname-select">
+    </select>
+    <button id="search-button" style="display: none;">搜尋</button>
+    <div id="result" style="width: 300px; height: 400px;"></div>
+    <button id = "read_more" style="display:none;">read_more</button>
+
+    <table id="max_country" style="left: 40%; top:15%"></table>
+    <table id="min_country" style="left: 68%; top:15%"></table>
+    <table id="max_area" style="left: 40%; top:25%"></table>
+    <table id="min_area" style="left: 68%; top:25%"></table>
+    <table id="manmax_country" style="left: 40%; top:35%"></table>
+    <table id="manmin_country" style="left: 68%; top:35%"></table>
+    <table id="manmax_area" style="left: 40%; top:45%"></table>
+    <table id="manmin_area" style="left: 68%; top:45%"></table>
+    <table id="womanmax_country" style="left: 40%; top:55%"></table>
+    <table id="womanmin_country" style="left: 68%; top:55%"></table>
+    <table id="womanmax_area" style="left: 40%; top:65%"></table>
+    <table id="womanmin_area" style="left: 68%; top:65%"></table>
+    <table id="infancymax_country" style="left: 40%; top:75%"></table>
+    <table id="infancymin_country" style="left: 68%; top:75%"></table>
+    <table id="infancymax_area" style="left: 40%; top:85%"></table>
+    <table id="infancymin_area" style="left: 68%; top:85%"></table>
+    <table id="youngmax_country" style="left: 40%; top:95%"></table>
+    <table id="youngmin_country" style="left: 68%; top:95%"></table>
+    <table id="youngmax_area" style="left: 40%; top:105%"></table>
+    <table id="youngmin_area" style="left: 68%; top:105%"></table>
+    <table id="oldmax_country" style="left: 40%; top:115%"></table>
+    <table id="oldmin_country" style="left: 68%; top:115%"></table>
+    <table id="oldmax_area" style="left: 40%; top:125%"></table>
+    <table id="oldmin_area" style="left: 68%; top:125%"></table>
+    
+    <script>
+
+        function createTable(elementId, label, data) {
+            
+            var tableBody = '<tbody>';
+
+            if(label.includes("里")){
+                var tableHeader = '<thead><tr><th>' + label + '</th><th>區別</th><th>里別</th><th>人數</th></tr></thead>';
+                data.forEach(function(item) {
+                var row = '<tr>' +
+                            '<td>' + " " + '</td>' +
+                            '<td>' + item.區別 + '</td>' +
+                            '<td>' + item.里別 + '</td>' +
+                            '<td>' + item.人口數量 + '</td>' +
+                          '</tr>';
+                tableBody += row;
+                });
+            }else{
+                var tableHeader = '<thead><tr><th>' + label + '</th><th>區別</th><th>人數</th></tr></thead>';
+                data.forEach(function(item) {
+                var row = '<tr>' +
+                            '<td>' + " " + '</td>' +
+                            '<td>' + item.區別 + '</td>' +
+                            //'<td>' + item.里別 + '</td>' +
+                            '<td>' + item.人口數量 + '</td>' +
+                          '</tr>';
+                tableBody += row;
+                });
+            }
+            
+            tableBody += '</tbody>';
+            $('#' + elementId).html(tableHeader + tableBody);
+        }
+
+        function createPie(data) {
+            var option = {
+                title:{
+                    text:"人口組成"
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    top: '5%',
+                    left: 'center'
+                },
+                series: [
+                    {
+                        
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: '40',
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: data
+                    }
+                ]
+            };
+
+            var chartDom = document.getElementById('result');
+            var myChart = echarts.init(chartDom);
+            myChart.setOption(option);
+        }
+        
+        $(document).ready(function() {
+            var data;
+
+            $.ajax({
+            url: "http://imgdeal.localhost/old/area/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+
+                createTable("oldmax_area", "最多老年人的里", response.Max);
+                createTable("oldmin_area", "最少老年人的里", response.Min);
+                
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+        $.ajax({
+            url: "http://imgdeal.localhost/old/country/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("oldmax_country", "最多老年人的區", response.Max);
+                createTable("oldmin_country", "最少老年人的區", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/young/country/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("youngmax_country", "最多青壯年的區", response.Max);
+                createTable("youngmin_country", "最少青壯年的區", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/young/area/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("youngmax_area", "最多青壯年的里", response.Max);
+                createTable("youngmin_area", "最少青壯年的里", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/infancy/area/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("infancymax_area", "最多嬰幼兒的里", response.Max);
+                createTable("infancymin_area", "最少嬰幼兒的里", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/infancy/country/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("infancymax_country", "最多嬰幼兒的區", response.Max);
+                createTable("infancymin_country", "最少嬰幼兒的區", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/contry/woman/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("womanmax_country", "最多女人的區", response.Max);
+                createTable("womanmin_country", "最少女人的區", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/area/woman/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("womanmax_area", "最多女人的里", response.Max);
+                createTable("womanmin_area", "最少女人的里", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/contry/man/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("manmax_country", "最多男人的區", response.Max);
+                createTable("manmin_country", "最少男人的區", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/area/man/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("manmax_area", "最多男人的里", response.Max);
+                createTable("manmin_area", "最少男人的里", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+            url: "http://imgdeal.localhost/contry/total/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("max_country", "最多人的區", response.Max);
+                createTable("min_country", "最少人的區", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+        $.ajax({
+            url: "http://imgdeal.localhost/area/total/Max_min",
+            method: "GET",
+            dataType: "json",
+            success: function(response) {
+                createTable("max_area", "最多人的里", response.Max);
+                createTable("min_area", "最少人的里", response.Min);
+            },
+            error: function(xhr, status, error) {
+                console.error(status + ": " + error);
+            }
+        });
+
+            $.ajax({
+                url: "https://seafarer675.github.io/t.json",
+                type: 'GET',
+                dataType: "json",
+                success: function(response) {
+                    data = response;
+                    console.log(data);
+                    $.each(data, function(index, area) {
+                        $('#country-select').append('<option value="' + index + '">' + area.country + '</option>');
+                    });
+                },
+                error: function() {
+                    alert("讀取資料失敗");
+                }
+            });
+
+            $("#country-select").change(function() {
+                var countryIndex = $(this).val();
+                var areaList = data[countryIndex].AreaList;
+                $("#areaname-select").empty().css("display", "inline");
+                $("#search-button").show();
+                $.each(areaList, function(index, area) {
+                    $('#areaname-select').append('<option value="' + index + '">' + area.areaname + '</option>');
+                });
+            });
+
+            $("#search-button").click(function() {
+                var selectedCountry = $("#country-select option:selected").text();
+                var selectedArea = $("#areaname-select option:selected").text();
+
+                // 在此调用PHP API
+                $.ajax({
+                url: "http://imgdeal.localhost/total",
+                type: 'GET',
+                dataType: "json",
+                data: {
+                    區別: selectedCountry,
+                    里別: selectedArea,
+                },
+                success: function(response) {
+                    let total = 0;
+                    let total1 = 0;
+                    let total2 = 0;
+
+                    // 遍歷 response 陣列，計算總數
+                    response.forEach(function(item) {
+                        if (item.區別 === selectedCountry && item.里別 === selectedArea) {
+                            total += item.青壯年數量;
+                            total1 += item.嬰幼兒數量;
+                            total2 += item.老年人數量;
+                        }
+                    });
+
+                    var newData = [
+                        { value: total, name: '青壯年' },
+                        { value: total1, name: '嬰幼兒' },
+                        { value: total2, name: '老年人' }
+                    ];
+
+                    createPie(newData);
+                    $("#read_more").show()
+                    $("#read_more").click(function() {
+                        window.location.href = `read_more.html?value=${selectedCountry},${selectedArea}`;
+                    });
+
+                },
+                error: function(xhr, status, error) {
+                    console.error("API请求失败:", status, error);
+                    alert("API 请求失敗: " + status + " " + error);
+                }
+            });
+            });
+        });
+
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台中市各區里人口組成結構</title>
+    <!-- 引入jQuery库 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- 引入ECharts库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+    <style>
+        body{
+            background-color: rgb(148, 255, 255);
+        }
+        /* 将 div 水平排列 */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        /* 设置每个 div 的宽度 */
+        .chart {
+            width: 450px;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>台中市各區里人口組成結構</h1>
+    <div id="main" class="chart"></div>
+    <div class="container">
+        <div id="result" class="chart"></div>
+        <div id="result1" class="chart"></div>
+        <div id="result2" class="chart"></div>
+        <div id="result3" class="chart"></div>
+        <div id="result4" class="chart"></div>
+        <div id="result5" class="chart"></div>
+
+
+    </div>
+    
+
+    <script>
+        var url = window.location.href;
+
+        var queryString = url.split('?')[1];
+
+        var queryParams = queryString.split('&');
+
+        var params = {};
+
+        queryParams.forEach(function(param) {
+            var keyValue = param.split('=');
+            var key = decodeURIComponent(keyValue[0]);
+            var value = decodeURIComponent(keyValue[1]);
+            params[key] = value;
+        });
+
+        var selectedValues = params['value'].split(',');
+
+        var selectedCountry = selectedValues[0];
+        var selectedArea = selectedValues[1];
+
+        document.querySelector('h1').textContent = selectedCountry + ' ' + selectedArea;
+
+        function createPie(theme, data, id) {
+            var option = {
+                title:{
+                    text:theme
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    top: '5%',
+                    left: 'center'
+                },
+                series: [
+                    {
+                        
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: '40',
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: data
+                    }
+                ]
+            };
+
+            var chartDom = document.getElementById(id);
+            var myChart = echarts.init(chartDom);
+            myChart.setOption(option);
+        }
+
+        $(document).ready(function() {
+            var data;
+
+            $.ajax({
+                url: "http://imgdeal.localhost/total",
+                type: 'GET',
+                dataType: "json",
+                data: {
+                    區別: selectedCountry,
+                    里別: selectedArea,
+                },
+                success: function(response) {
+                    let total = 0;
+                    let total1 = 0;
+                    let total2 = 0;
+
+                    // 遍歷 response 陣列，計算總數
+                    response.forEach(function(item) {
+                        if (item.區別 === selectedCountry && item.里別 === selectedArea) {
+                            total += item.青壯年數量;
+                            total1 += item.嬰幼兒數量;
+                            total2 += item.老年人數量;
+                        }
+                    });
+
+                    var theme = '年齡組成'
+                    var newData = [
+                        { value: total, name: '青壯年' },
+                        { value: total1, name: '嬰幼兒' },
+                        { value: total2, name: '老年人' }
+                    ];
+                    var id = 'main'
+
+                    createPie(theme, newData, id);
+                },
+                error: function(xhr, status, error) {
+                    console.error("API请求失败:", status, error);
+                    alert("API 请求失敗: " + status + " " + error);
+                }
+            });
+
+            $.ajax({
+                url: "http://imgdeal.localhost/man/total",
+                method: "GET",
+                dataType: "json",
+                success: function(response) {
+                    let total = 0;
+                    let total1 = 0;
+                    let total2 = 0;
+
+                    // 遍歷 response 陣列，計算總數
+                    response.forEach(function(item) {
+                        if (item.區別 === selectedCountry && item.里別 === selectedArea) {
+                            total += item.青壯年數量;
+                            total1 += item.嬰幼兒數量;
+                            total2 += item.老年人數量;
+                        }
+                    });
+                    var newData = [
+                        { value: total, name: '青壯年' },
+                        { value: total1, name: '嬰幼兒' },
+                        { value: total2, name: '老年人' }
+                    ];
+                    var theme = "男性年齡組成"
+                    var id = 'result'
+                    createPie(theme, newData, id)
+                    var man_sum = total + total1 +total2
+
+                    $.ajax({
+                        url: "http://imgdeal.localhost/woman/total",
+                        method: "GET",
+                        dataType: "json",
+                        success: function(response) {
+                            let total = 0;
+                            let total1 = 0;
+                            let total2 = 0;
+
+                            // 遍歷 response 陣列，計算總數
+                            response.forEach(function(item) {
+                                if (item.區別 === selectedCountry && item.里別 === selectedArea) {
+                                    total += item.青壯年數量;
+                                    total1 += item.嬰幼兒數量;
+                                    total2 += item.老年人數量;
+                                }
+                            });
+                            var woman_sum = total + total1 +total2
+                            var newData = [
+                                { value: man_sum, name: '男性' },
+                                { value: woman_sum, name: '女性' }
+                            ];
+                            var theme = "男女比"
+                            var id = 'result2'
+                            createPie(theme, newData, id)
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(status + ": " + error);
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error(status + ": " + error);
+                }
+             });
+
+             $.ajax({
+                url: "http://imgdeal.localhost/woman/total",
+                method: "GET",
+                dataType: "json",
+                success: function(response) {
+                    let total = 0;
+                    let total1 = 0;
+                    let total2 = 0;
+
+                    // 遍歷 response 陣列，計算總數
+                    response.forEach(function(item) {
+                        if (item.區別 === selectedCountry && item.里別 === selectedArea) {
+                            total += item.青壯年數量;
+                            total1 += item.嬰幼兒數量;
+                            total2 += item.老年人數量;
+                        }
+                    });
+                    var newData = [
+                        { value: total, name: '青壯年' },
+                        { value: total1, name: '嬰幼兒' },
+                        { value: total2, name: '老年人' }
+                    ];
+                    var theme = "女性年齡組成"
+                    var id = 'result1'
+                    createPie(theme, newData, id)
+                },
+                error: function(xhr, status, error) {
+                    console.error(status + ": " + error);
+                }
+             });
+
+             $.ajax({
+                url: "http://imgdeal.localhost/infancy/man",
+                method: "GET",
+                dataType: "json",
+                success: function(response) {
+                    let man_count = 0;
+                  
+
+                    // 遍歷 response 陣列，計算總數
+                    response.forEach(function(item) {
+                        man_count = item.男嬰幼兒數量
+                    });
+
+                    $.ajax({
+                        url: "http://imgdeal.localhost/infancy/woman",
+                        method: "GET",
+                        dataType: "json",
+                        success: function(response) {
+                            let woman_count = 0
+
+                            // 遍歷 response 陣列，計算總數
+                            response.forEach(function(item) {
+                                woman_count = item.女嬰幼兒數量
+                            });
+                            var newData = [
+                                { value: man_count, name: '男嬰幼兒' },
+                                { value: woman_count, name: '女嬰幼兒' }
+                            ];
+                            var theme = "嬰幼兒性別比"
+                            var id = 'result3'
+                            createPie(theme, newData, id)
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(status + ": " + error);
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error(status + ": " + error);
+                }
+             });
+
+             $.ajax({
+                url: "http://imgdeal.localhost/young/man",
+                method: "GET",
+                dataType: "json",
+                success: function(response) {
+                    let man_count = 0;
+                  
+
+                    // 遍歷 response 陣列，計算總數
+                    response.forEach(function(item) {
+                        man_count = item.男青壯年數量
+                    });
+
+                    $.ajax({
+                        url: "http://imgdeal.localhost/young/woman",
+                        method: "GET",
+                        dataType: "json",
+                        success: function(response) {
+                            let woman_count = 0
+
+                            // 遍歷 response 陣列，計算總數
+                            response.forEach(function(item) {
+                                woman_count = item.女青壯年數量
+                            });
+                            var newData = [
+                                { value: man_count, name: '男青壯年' },
+                                { value: woman_count, name: '女青壯年' }
+                            ];
+                            var theme = "青壯年性別比"
+                            var id = 'result4'
+                            createPie(theme, newData, id)
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(status + ": " + error);
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error(status + ": " + error);
+                }
+             });
+
+             $.ajax({
+                url: "http://imgdeal.localhost/older/man",
+                method: "GET",
+                dataType: "json",
+                success: function(response) {
+                    let man_count = 0;
+                  
+
+                    // 遍歷 response 陣列，計算總數
+                    response.forEach(function(item) {
+                        man_count = item.老男人數量
+                    });
+
+                    $.ajax({
+                        url: "http://imgdeal.localhost/older/woman",
+                        method: "GET",
+                        dataType: "json",
+                        success: function(response) {
+                            let woman_count = 0
+
+                            // 遍歷 response 陣列，計算總數
+                            response.forEach(function(item) {
+                                woman_count = item.老女人數量
+                            });
+                            var newData = [
+                                { value: man_count, name: '男姓老年人' },
+                                { value: woman_count, name: '女姓老年人' }
+                            ];
+                            var theme = "老年人性別比"
+                            var id = 'result5'
+                            createPie(theme, newData, id)
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(status + ": " + error);
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    console.error(status + ": " + error);
+                }
+             });
+        })
+    </script>
+</body>
+</html>
